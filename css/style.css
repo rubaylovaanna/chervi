@@ -14,6 +14,7 @@ html, body {
   height: 100vh;
   width: 100vw;
   background: #87CEEB;
+  touch-action: none;
 }
 
 /* ===== ЭКРАНЫ ===== */
@@ -174,6 +175,7 @@ html, body {
   touch-action: none;
   transition: transform 0.2s;
   position: relative;
+  pointer-events: auto;
 }
 
 .draggable-worm:hover {
@@ -200,14 +202,13 @@ html, body {
 }
 
 /* При перетаскивании — fixed позиционирование */
-/* При перетаскивании — fixed позиционирование */
+/* ВАЖНО: нет top/left — они устанавливаются только через JS */
 .draggable-worm.dragging {
   position: fixed !important;
   transform: none !important;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
   z-index: 1000;
   cursor: grabbing;
-  pointer-events: none;
   margin: 0;
   padding: 0;
 }
@@ -224,15 +225,15 @@ html, body {
 
 /* Ряд норок */
 #holes-row {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  justify-items: center;
   align-items: center;
-  flex-wrap: wrap;
   gap: 20px;
   padding: 20px;
   background: rgba(139, 105, 20, 0.3);
   border-radius: 30px;
   backdrop-filter: blur(5px);
+  grid-template-columns: repeat(8, 1fr);
 }
 
 .hole {
@@ -244,12 +245,14 @@ html, body {
   cursor: pointer;
   transition: transform 0.3s;
   position: relative;
+  max-width: 100%;
 }
 
 .hole img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .hole:hover:not(.filled) {
@@ -275,21 +278,75 @@ html, body {
   }
 
   .popup-img {
-    max-width: 220px;
-    max-height: 220px;
+    max-width: 240px;
+    max-height: 240px;
   }
 
   .popup-text {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .popup-btn {
-    padding: 14px 40px;
-    font-size: 22px;
+    padding: 16px 45px;
+    font-size: 24px;
   }
 
   .congrats-title {
-    font-size: 48px;
+    font-size: 52px;
+  }
+
+  #current-worm-container {
+    width: 200px;
+    height: 140px;
+  }
+
+  #task-text {
+    font-size: 22px;
+    padding: 12px 30px;
+  }
+
+  .hole {
+    width: 100px;
+    height: 100px;
+  }
+
+  #holes-row {
+    gap: 10px;
+    padding: 15px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-img {
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .popup-text {
+    font-size: 20px;
+  }
+
+  .hole {
+    width: 90px;
+    height: 90px;
+  }
+
+  #current-worm-container {
+    width: 180px;
+    height: 120px;
+  }
+
+  #holes-row {
+    gap: 8px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .hole {
+    width: 78px;
+    height: 78px;
   }
 
   #current-worm-container {
@@ -298,39 +355,13 @@ html, body {
   }
 
   #task-text {
-    font-size: 20px;
-    padding: 10px 25px;
-  }
-
-  .hole {
-    width: 90px;
-    height: 90px;
+    font-size: 18px;
+    padding: 10px 20px;
   }
 
   #holes-row {
-    gap: 12px;
-    padding: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .popup-img {
-    max-width: 180px;
-    max-height: 180px;
-  }
-
-  .popup-text {
-    font-size: 18px;
-  }
-
-  .hole {
-    width: 70px;
-    height: 70px;
-  }
-
-  #current-worm-container {
-    width: 130px;
-    height: 90px;
+    gap: 6px;
+    padding: 8px;
   }
 }
 
