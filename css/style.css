@@ -12,7 +12,7 @@ html, body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
-  background: #87CEEB;
+  background: #8B6914; /* Цвет земли — чтобы не было голубой полосы */
   touch-action: none;
 }
 
@@ -80,6 +80,18 @@ html, body {
 }
 
 /* ===== ИГРОВОЙ ЭКРАН ===== */
+.screen {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen.active {
+  display: block;
+}
+
 .game-screen {
   background: url('../backgrounds/bg-ground.png') center/cover no-repeat;
   background-color: #8B6914;
@@ -90,16 +102,15 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 30px 20px;
+  padding: 20px;
 }
 
 .task-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding-top: 20px;
+  gap: 15px;
+  flex-shrink: 0;
 }
 
 #current-worm-container {
@@ -112,6 +123,7 @@ html, body {
   border-radius: 30px;
   padding: 15px;
   backdrop-filter: blur(5px);
+  flex-shrink: 0;
 }
 
 #current-worm {
@@ -130,18 +142,22 @@ html, body {
   padding: 15px 40px;
   border-radius: 30px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
-/* Норки */
+/* Норки — растягиваются на оставшееся место */
 #holes-row {
   display: grid;
   justify-items: center;
+  align-content: center;
   gap: 20px;
   padding: 20px;
   background: rgba(139, 105, 20, 0.3);
   border-radius: 30px;
   backdrop-filter: blur(5px);
   grid-template-columns: repeat(8, 1fr);
+  flex: 1;
+  min-height: 0;
 }
 
 .hole {
@@ -192,12 +208,12 @@ html, body {
   .hole { width: 90px; height: 90px; }
   #current-worm-container { width: 180px; height: 120px; }
   #holes-row { gap: 8px; padding: 10px; }
+  #task-text { font-size: 18px; padding: 10px 20px; }
 }
 
 @media (max-width: 380px) {
   .hole { width: 78px; height: 78px; }
   #current-worm-container { width: 160px; height: 110px; }
-  #task-text { font-size: 18px; padding: 10px 20px; }
   #holes-row { gap: 6px; padding: 8px; }
 }
 
