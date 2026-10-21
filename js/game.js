@@ -1,5 +1,4 @@
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
-let currentSearchScreen = 1;
 const totalSearchScreens = 6;
 
 let wormSequence = [];
@@ -7,11 +6,12 @@ let currentWormIndex = 0;
 let filledCount = 0;
 let totalHoles = 8;
 
+// Drag & Drop
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let currentWormElement = null;
-let originalPosition = null;
+let wormContainerRect = null;
 
 // ===== ПОПАПЫ =====
 function startGame() {
@@ -104,55 +104,84 @@ function showCurrentWorm() {
 
   const wormId = wormSequence[currentWormIndex];
   const wormImg = document.getElementById('current-worm');
+
+  // Сбрасываем стили drag
+  wormImg.classList.remove('dragging');
+  wormImg.style.position = '';
+  wormImg.style.left = '';
+  wormImg.style.top = '';
+  wormImg.style.zIndex = '';
+  wormImg.style.pointerEvents = '';
+  wormImg.style.cursor = 'grab';
+
   wormImg.src = `worms/worm${wormId}.png`;
   wormImg.dataset.wormId = wormId;
 
   // Анимация появления
   wormImg.classList.remove('show');
-  void wormImg.offsetWidth; // Перезапуск анимации
+  void wormImg.offsetWidth;
   wormImg.classList.add('show');
 }
 
-// ===== DRAG & DROP =====
+// ===== DRAG & DROP (Pointer Events — мышь + тач) =====
 document.addEventListener('pointerdown', (e) => {
-  if (e.target.classList.contains('draggable-worm')) {
-    startDrag(e);
+  const worm = e.target.closest('.draggable-worm');
+  if (worm && !worm.classList.contains('dragging')) {
+    startDrag(e, worm);
   }
 });
 
-document.addEventListener('pointermove', onDrag);
-document.addEventListener('pointerup', endDrag);
-document.addEventListener('pointercancel', endDrag);
+document.addEventListener('pointermove', (e) => {
+  if (isDragging && currentWormElement) {
+    e.preventDefault();
+    onDrag(e);
+  }
+});
 
-function startDrag(e) {
+document.addEventListener('pointerup', (e) => {
+  if (isDragging && currentWormElement) {
+    endDrag(e);
+  }
+});
+
+document.addEventListener('pointercancel', (e) => {
+  if (isDragging && currentWormElement) {
+    endDrag(e);
+  }
+});
+
+function startDrag(e, worm) {
   e.preventDefault();
   isDragging = true;
-  currentWormElement = e.target;
+  currentWormElement = worm;
 
-  const rect = currentWormElement.getBoundingClientRect();
-  originalPosition = { left: rect.left, top: rect.top };
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
+  // Запоминаем позицию контейнера для возврата
+  const container = document.getElementById('current-worm-container');
+  wormContainerRect = container.getBoundingClientRect();
 
-  // Фиксируем позицию
-  currentWormElement.style.position = 'fixed';
-  currentWormElement.style.left = rect.left + 'px';
-  currentWormElement.style.top = rect.top + 'px';
-  currentWormElement.style.zIndex = '1000';
-  currentWormElement.style.cursor = 'grabbing';
+  const rect = worm.getBoundingClientRect();
+
+  // ✅ КУРСОР ПО ЦЕНТРУ ЧЕРВЯКА
+  dragOffsetX = rect.width / 2;
+  dragOffsetY = rect.height / 2;
+
+  // Переносим червяка в body для свободного перемещения
+  worm.classList.add('dragging');
+  worm.style.left = (e.clientX - dragOffsetX) + 'px';
+  worm.style.top = (e.clientY - dragOffsetY) + 'px';
 
   // Захват указателя
   try {
-    currentWormElement.setPointerCapture(e.pointerId);
+    worm.setPointerCapture(e.pointerId);
   } catch (err) {
-    // Игнорируем, если не поддерживается
+    // Игнорируем
   }
 }
 
 function onDrag(e) {
   if (!isDragging || !currentWormElement) return;
-  e.preventDefault();
 
+  // Червяк следует за курсором (центр червяка = позиция курсора)
   currentWormElement.style.left = (e.clientX - dragOffsetX) + 'px';
   currentWormElement.style.top = (e.clientY - dragOffsetY) + 'px';
 }
@@ -165,21 +194,23 @@ function endDrag(e) {
 }
 
 function checkDrop(x, y) {
-  // Временно отключаем pointer-events для проверки элемента под курсором
-  currentWormElement.style.pointerEvents = 'none';
+  if (!currentWormElement) return;
+
+  // Временно скрываем червяка чтобы найти элемент под ним
+  currentWormElement.style.display = 'none';
   const element = document.elementFromPoint(x, y);
-  currentWormElement.style.pointerEvents = 'auto';
+  currentWormElement.style.display = '';
 
   const hole = element ? element.closest('.hole') : null;
 
   if (hole && !hole.classList.contains('filled')) {
     if (hole.dataset.wormId === currentWormElement.dataset.wormId) {
-      // Совпадение! Червяк занимает место норки
+      // ✅ Совпадение! Червяк занимает место норки
       hole.innerHTML = `<img src="${currentWormElement.src}" style="width:100%;height:100%;object-fit:contain;">`;
       hole.classList.add('filled');
       filledCount++;
 
-      // Сбрасываем стили перетаскиваемого элемента
+      // Сбрасываем стили
       resetWormStyles();
 
       if (filledCount === totalHoles) {
@@ -189,36 +220,41 @@ function checkDrop(x, y) {
         setTimeout(showCurrentWorm, 600);
       }
     } else {
-      // Не совпадение — возвращаем червяка
+      // ❌ Не совпадение — возвращаем
       returnWorm();
     }
   } else {
-    // Попали не в норку — возвращаем
+    // Не попали в норку — возвращаем
     returnWorm();
   }
 }
 
 function returnWorm() {
-  if (!currentWormElement || !originalPosition) return;
+  if (!currentWormElement || !wormContainerRect) return;
 
-  currentWormElement.style.transition = 'all 0.3s ease';
-  currentWormElement.style.left = originalPosition.left + 'px';
-  currentWormElement.style.top = originalPosition.top + 'px';
+  // Возвращаем в контейнер с анимацией
+  currentWormElement.style.transition = 'all 0.4s ease';
+  currentWormElement.style.left = (wormContainerRect.left + wormContainerRect.width / 2 - currentWormElement.offsetWidth / 2) + 'px';
+  currentWormElement.style.top = (wormContainerRect.top + wormContainerRect.height / 2 - currentWormElement.offsetHeight / 2) + 'px';
 
   setTimeout(() => {
     resetWormStyles();
-  }, 300);
+  }, 400);
 }
 
 function resetWormStyles() {
   if (!currentWormElement) return;
 
+  currentWormElement.classList.remove('dragging');
   currentWormElement.style.transition = '';
   currentWormElement.style.position = '';
   currentWormElement.style.left = '';
   currentWormElement.style.top = '';
   currentWormElement.style.zIndex = '';
   currentWormElement.style.cursor = 'grab';
+  currentWormElement.style.pointerEvents = '';
+  currentWormElement.style.display = '';
+  currentWormElement.style.filter = '';
 }
 
 // ===== РЕСТАРТ =====
@@ -233,8 +269,6 @@ function restartGame() {
     if (object) object.style.display = '';
     if (worm) {
       worm.classList.remove('show');
-      worm.style.opacity = '0';
-      worm.style.transform = 'translate(-50%, -50%) scale(0)';
     }
   }
 
@@ -245,17 +279,19 @@ function restartGame() {
   const currentWorm = document.getElementById('current-worm');
   if (currentWorm) {
     currentWorm.src = '';
-    currentWorm.classList.remove('show');
+    currentWorm.classList.remove('show', 'dragging');
+    currentWorm.style.position = '';
+    currentWorm.style.left = '';
+    currentWorm.style.top = '';
   }
 
   // Возврат на приветствие
-  currentSearchScreen = 1;
+  showScreen('screen1');
   document.getElementById('welcome-popup').classList.remove('hidden');
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 window.addEventListener('load', () => {
-  // Приветственный попап показывается по умолчанию
   console.log('Игра загружена!');
 });
 
