@@ -130,10 +130,12 @@ function startDrag(e, worm) {
   worm.style.maxWidth = 'none';
   worm.style.maxHeight = 'none';
 
-  // Делаем fixed и позиционируем так, чтобы курсор остался на том же месте
-  worm.classList.add('dragging');
+  // Сначала устанавливаем позицию, потом добавляем класс
   worm.style.left = (e.clientX - dragOffsetX) + 'px';
   worm.style.top = (e.clientY - dragOffsetY) + 'px';
+  
+  // Добавляем класс dragging (теперь без top/left в CSS)
+  worm.classList.add('dragging');
 
   // Захват указателя
   try {
