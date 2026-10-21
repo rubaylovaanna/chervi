@@ -16,7 +16,7 @@
     <div class="popup-content">
       <img src="ui/beaver-fishing.png" alt="Бобёр" class="popup-img">
       <p class="popup-text">Бобёр пошёл на рыбалку, но червяки сбежали из его ведра. Помоги им найти их норки!</p>
-      <button class="popup-btn" onclick="startGame()">Старт</button>
+      <button id="start-btn" class="popup-btn">Старт</button>
     </div>
   </div>
 
@@ -25,7 +25,7 @@
     <div class="game-area">
       <div class="task-area">
         <div id="current-worm-container">
-          <img id="current-worm" src="" alt="Червяк" class="draggable-worm">
+          <img id="current-worm" src="" alt="Червяк">
         </div>
         <div id="task-text">Соедини червяка с норкой</div>
       </div>
@@ -38,7 +38,7 @@
     <div class="popup-content">
       <h1 class="congrats-title">Молодец!</h1>
       <p class="popup-text">Все червяки нашли свои норки!</p>
-      <button class="popup-btn" onclick="restartGame()">Начать сначала</button>
+      <button id="restart-btn" class="popup-btn">Начать сначала</button>
     </div>
   </div>
 
