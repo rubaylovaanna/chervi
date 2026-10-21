@@ -1,11 +1,10 @@
-/* ===== БАЗОВЫЕ СТИЛИ ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -17,64 +16,28 @@ html, body {
   touch-action: none;
 }
 
-/* ===== ЭКРАНЫ ===== */
-.screen {
-  display: none;
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.screen.active {
-  display: block;
-}
-
 /* ===== ПОПАПЫ ===== */
 .popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.4s ease;
 }
 
-.popup.hidden {
-  display: none !important;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.popup.hidden { display: none !important; }
 
 .popup-content {
-  background: linear-gradient(135deg, #FFF8E7 0%, #FFE4B5 100%);
+  background: linear-gradient(135deg, #FFF8E7, #FFE4B5);
   border-radius: 40px;
   padding: 50px 60px;
   max-width: 600px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   border: 5px solid #FFD700;
-  animation: popupAppear 0.5s ease;
-}
-
-@keyframes popupAppear {
-  from {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
 .popup-img {
@@ -83,7 +46,6 @@ html, body {
   width: 100%;
   height: auto;
   margin-bottom: 25px;
-  object-fit: contain;
 }
 
 .popup-text {
@@ -99,38 +61,25 @@ html, body {
   font-size: 28px;
   font-weight: 700;
   font-family: 'Ubuntu', sans-serif;
-  background: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
+  background: linear-gradient(135deg, #FF6347, #FF4500);
   color: white;
   border: none;
   border-radius: 50px;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(255, 99, 71, 0.4);
-  transition: all 0.2s;
+  transition: transform 0.2s;
 }
 
-.popup-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 25px rgba(255, 99, 71, 0.6);
-}
-
-.popup-btn:active {
-  transform: scale(0.98);
-}
+.popup-btn:hover { transform: scale(1.05); }
 
 .congrats-title {
   font-size: 64px;
   color: #FFD700;
-  text-shadow: 3px 3px 0 #FF8C00, 6px 6px 15px rgba(0, 0, 0, 0.3);
+  text-shadow: 3px 3px 0 #FF8C00;
   margin-bottom: 20px;
-  animation: bounce 1s ease infinite;
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-}
-
-/* ===== ЭКРАН: ИГРА С НОРКАМИ ===== */
+/* ===== ИГРОВОЙ ЭКРАН ===== */
 .game-screen {
   background: url('../backgrounds/bg-ground.png') center/cover no-repeat;
   background-color: #8B6914;
@@ -145,7 +94,6 @@ html, body {
   padding: 30px 20px;
 }
 
-/* Зона задания */
 .task-area {
   display: flex;
   flex-direction: column;
@@ -164,53 +112,14 @@ html, body {
   border-radius: 30px;
   padding: 15px;
   backdrop-filter: blur(5px);
-  position: relative;
 }
 
-.draggable-worm {
+#current-worm {
   width: 100%;
   height: 100%;
   object-fit: contain;
   cursor: grab;
   touch-action: none;
-  transition: transform 0.2s;
-  position: relative;
-  pointer-events: auto;
-}
-
-.draggable-worm:hover {
-  transform: scale(1.1);
-}
-
-.draggable-worm.show {
-  animation: wormAppear 0.6s ease-out;
-}
-
-@keyframes wormAppear {
-  0% {
-    transform: scale(0) rotate(-180deg);
-    opacity: 0;
-  }
-  60% {
-    transform: scale(1.2) rotate(10deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(0);
-    opacity: 1;
-  }
-}
-
-/* При перетаскивании — fixed позиционирование */
-/* ВАЖНО: нет top/left — они устанавливаются только через JS */
-.draggable-worm.dragging {
-  position: fixed !important;
-  transform: none !important;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
-  z-index: 1000;
-  cursor: grabbing;
-  margin: 0;
-  padding: 0;
 }
 
 #task-text {
@@ -223,11 +132,10 @@ html, body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-/* Ряд норок */
+/* Норки */
 #holes-row {
   display: grid;
   justify-items: center;
-  align-items: center;
   gap: 20px;
   padding: 20px;
   background: rgba(139, 105, 20, 0.3);
@@ -244,8 +152,6 @@ html, body {
   justify-content: center;
   cursor: pointer;
   transition: transform 0.3s;
-  position: relative;
-  max-width: 100%;
 }
 
 .hole img {
@@ -255,9 +161,7 @@ html, body {
   pointer-events: none;
 }
 
-.hole:hover:not(.filled) {
-  transform: scale(1.1);
-}
+.hole:hover:not(.filled) { transform: scale(1.1); }
 
 .hole.filled {
   cursor: default;
@@ -265,118 +169,40 @@ html, body {
 }
 
 @keyframes holeFilled {
-  0% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); filter: drop-shadow(0 0 20px #00ff00); }
-  100% { transform: scale(1); }
 }
 
 /* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 768px) {
-  .popup-content {
-    padding: 30px 25px;
-    max-width: 90%;
-  }
-
-  .popup-img {
-    max-width: 240px;
-    max-height: 240px;
-  }
-
-  .popup-text {
-    font-size: 24px;
-  }
-
-  .popup-btn {
-    padding: 16px 45px;
-    font-size: 24px;
-  }
-
-  .congrats-title {
-    font-size: 52px;
-  }
-
-  #current-worm-container {
-    width: 200px;
-    height: 140px;
-  }
-
-  #task-text {
-    font-size: 22px;
-    padding: 12px 30px;
-  }
-
-  .hole {
-    width: 100px;
-    height: 100px;
-  }
-
-  #holes-row {
-    gap: 10px;
-    padding: 15px;
-    grid-template-columns: repeat(4, 1fr);
-  }
+  .popup-content { padding: 30px 25px; }
+  .popup-img { max-width: 240px; max-height: 240px; }
+  .popup-text { font-size: 24px; }
+  .popup-btn { padding: 16px 45px; font-size: 24px; }
+  .congrats-title { font-size: 52px; }
+  #current-worm-container { width: 200px; height: 140px; }
+  #task-text { font-size: 22px; padding: 12px 30px; }
+  .hole { width: 100px; height: 100px; }
+  #holes-row { gap: 10px; padding: 15px; }
 }
 
 @media (max-width: 480px) {
-  .popup-img {
-    max-width: 200px;
-    max-height: 200px;
-  }
-
-  .popup-text {
-    font-size: 20px;
-  }
-
-  .hole {
-    width: 90px;
-    height: 90px;
-  }
-
-  #current-worm-container {
-    width: 180px;
-    height: 120px;
-  }
-
-  #holes-row {
-    gap: 8px;
-    padding: 10px;
-  }
+  .popup-img { max-width: 200px; max-height: 200px; }
+  .popup-text { font-size: 20px; }
+  .hole { width: 90px; height: 90px; }
+  #current-worm-container { width: 180px; height: 120px; }
+  #holes-row { gap: 8px; padding: 10px; }
 }
 
 @media (max-width: 380px) {
-  .hole {
-    width: 78px;
-    height: 78px;
-  }
-
-  #current-worm-container {
-    width: 160px;
-    height: 110px;
-  }
-
-  #task-text {
-    font-size: 18px;
-    padding: 10px 20px;
-  }
-
-  #holes-row {
-    gap: 6px;
-    padding: 8px;
-  }
+  .hole { width: 78px; height: 78px; }
+  #current-worm-container { width: 160px; height: 110px; }
+  #task-text { font-size: 18px; padding: 10px 20px; }
+  #holes-row { gap: 6px; padding: 8px; }
 }
 
 @media (min-width: 1600px) {
-  .hole {
-    width: 180px;
-    height: 180px;
-  }
-
-  #current-worm-container {
-    width: 280px;
-    height: 180px;
-  }
-
-  #task-text {
-    font-size: 32px;
-  }
+  .hole { width: 180px; height: 180px; }
+  #current-worm-container { width: 280px; height: 180px; }
+  #task-text { font-size: 32px; }
 }
