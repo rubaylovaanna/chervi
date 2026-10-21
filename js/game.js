@@ -1,6 +1,4 @@
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
-const totalSearchScreens = 6;
-
 let wormSequence = [];
 let currentWormIndex = 0;
 let filledCount = 0;
@@ -16,49 +14,11 @@ let wormContainerRect = null;
 // ===== ПОПАПЫ =====
 function startGame() {
   document.getElementById('welcome-popup').classList.add('hidden');
-  showScreen('screen1');
-}
-
-function showBucketPopup() {
-  showScreen('screen8');
-  document.getElementById('bucket-popup').classList.remove('hidden');
-}
-
-function startHoleGame() {
-  document.getElementById('bucket-popup').classList.add('hidden');
   initHoleGame();
 }
 
 function showCongrats() {
   document.getElementById('congrats-popup').classList.remove('hidden');
-}
-
-// ===== УПРАВЛЕНИЕ ЭКРАНАМИ =====
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-}
-
-// ===== ЭКРАНЫ ПОИСКА (1-6) =====
-function onObjectClick(screenNum) {
-  const screen = document.getElementById('screen' + screenNum);
-  const object = screen.querySelector('.object-big');
-  const worm = screen.querySelector('.worm-found');
-
-  if (object.style.display === 'none') return;
-
-  // Скрываем предмет, показываем червяка
-  object.style.display = 'none';
-  worm.classList.add('show');
-
-  // Через 1.5 сек — переход на следующий экран
-  setTimeout(() => {
-    if (screenNum < totalSearchScreens) {
-      showScreen('screen' + (screenNum + 1));
-    } else {
-      showScreen('screen7');
-    }
-  }, 1500);
 }
 
 // ===== ИГРА С НОРКАМИ =====
@@ -261,17 +221,6 @@ function resetWormStyles() {
 function restartGame() {
   document.getElementById('congrats-popup').classList.add('hidden');
 
-  // Сброс экранов поиска
-  for (let i = 1; i <= totalSearchScreens; i++) {
-    const screen = document.getElementById('screen' + i);
-    const object = screen.querySelector('.object-big');
-    const worm = screen.querySelector('.worm-found');
-    if (object) object.style.display = '';
-    if (worm) {
-      worm.classList.remove('show');
-    }
-  }
-
   // Сброс игры с норками
   const holesRow = document.getElementById('holes-row');
   if (holesRow) holesRow.innerHTML = '';
@@ -286,7 +235,6 @@ function restartGame() {
   }
 
   // Возврат на приветствие
-  showScreen('screen1');
   document.getElementById('welcome-popup').classList.remove('hidden');
 }
 
