@@ -43,6 +43,11 @@ function initHoleGame() {
 
   const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
 
+  // Определяем количество колонок в зависимости от ширины экрана
+  const isMobile = window.innerWidth <= 768;
+  const cols = isMobile ? 4 : 8;
+  holesRow.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
   shuffledHoles.forEach(id => {
     const hole = document.createElement('div');
     hole.className = 'hole';
@@ -115,7 +120,7 @@ function startDrag(e, worm) {
   const container = document.getElementById('current-worm-container');
   wormContainerRect = container.getBoundingClientRect();
 
-  // Получаем размеры ДО смены position
+  // Получаем размеры и позицию ДО смены position
   const rect = worm.getBoundingClientRect();
   wormWidth = rect.width;
   wormHeight = rect.height;
@@ -130,11 +135,11 @@ function startDrag(e, worm) {
   worm.style.maxWidth = 'none';
   worm.style.maxHeight = 'none';
 
-  // Сначала устанавливаем позицию, потом добавляем класс
+  // ВАЖНО: Сначала устанавливаем позицию, ПОТОМ добавляем класс
   worm.style.left = (e.clientX - dragOffsetX) + 'px';
   worm.style.top = (e.clientY - dragOffsetY) + 'px';
   
-  // Добавляем класс dragging (теперь без top/left в CSS)
+  // Добавляем класс dragging (в CSS нет top/left — только position: fixed)
   worm.classList.add('dragging');
 
   // Захват указателя
