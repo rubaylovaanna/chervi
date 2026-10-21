@@ -14,106 +14,14 @@
   <!-- ПРИВЕТСТВЕННЫЙ ПОПАП -->
   <div id="welcome-popup" class="popup">
     <div class="popup-content">
-      <img src="characters/beaver-fishing.png" alt="Бобёр" class="popup-img">
-      <p class="popup-text">Бобёр идёт на рыбалку! Помоги ему собрать червяков в ведро.</p>
+      <img src="ui/beaver-fishing.png" alt="Бобёр" class="popup-img">
+      <p class="popup-text">Бобёр пошёл на рыбалку, но червяки сбежали из его ведра. Помоги им найти их норки!</p>
       <button class="popup-btn" onclick="startGame()">Старт</button>
     </div>
   </div>
 
-  <!-- ЭКРАН 1: ГРУЗОВИК -->
-  <div class="screen search-screen" id="screen1">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/car.png" alt="Грузовик" class="object-big pulsing" onclick="onObjectClick(1)">
-        <img src="worms/worm1.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 2: ТРУБА -->
-  <div class="screen search-screen" id="screen2">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/pipe.png" alt="Труба" class="object-big pulsing" onclick="onObjectClick(2)">
-        <img src="worms/worm2.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 3: РАКЕТКА -->
-  <div class="screen search-screen" id="screen3">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/racket.png" alt="Ракетка" class="object-big pulsing" onclick="onObjectClick(3)">
-        <img src="worms/worm3.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 4: БАРАБАН -->
-  <div class="screen search-screen" id="screen4">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/drum.png" alt="Барабан" class="object-big pulsing" onclick="onObjectClick(4)">
-        <img src="worms/worm4.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 5: КОРЗИНКА -->
-  <div class="screen search-screen" id="screen5">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/basket.png" alt="Корзинка" class="object-big pulsing" onclick="onObjectClick(5)">
-        <img src="worms/worm5.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 6: ГИТАРА -->
-  <div class="screen search-screen" id="screen6">
-    <div class="cloud-instruction">
-      <p>Подскажи бобру, где червяк? Говори полным предложением.</p>
-    </div>
-    <div class="search-area">
-      <img src="characters/beaver.png" alt="Бобёр" class="beaver-big">
-      <div class="object-wrapper">
-        <img src="objects/guitar.png" alt="Гитара" class="object-big pulsing" onclick="onObjectClick(6)">
-        <img src="worms/worm6.png" alt="Червяк" class="worm-found">
-      </div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН 7: ВИДЕО -->
-  <div class="screen video-screen" id="screen7">
-    <video id="worms-video" autoplay muted loop playsinline>
-      <source src="video/worms-running.mp4" type="video/mp4">
-    </video>
-    <button class="next-btn" onclick="showBucketPopup()">Далее →</button>
-  </div>
-
-  <!-- ЭКРАН 8: ИГРА С НОРКАМИ -->
-  <div class="screen game-screen" id="screen8">
+  <!-- ЭКРАН: ИГРА С НОРКАМИ -->
+  <div class="screen game-screen active" id="game-screen">
     <div class="game-area">
       <div class="task-area">
         <div id="current-worm-container">
@@ -122,15 +30,6 @@
         <div id="task-text">Соедини червяка с норкой</div>
       </div>
       <div id="holes-row"></div>
-    </div>
-  </div>
-
-  <!-- ПОПАП С ВЕДРОМ -->
-  <div id="bucket-popup" class="popup hidden">
-    <div class="popup-content">
-      <img src="ui/bucket.png" alt="Ведро" class="popup-img">
-      <p class="popup-text">Червяки сбежали! Помоги им найти свою норку. Соедини червяка и норку, подходящую по форме.</p>
-      <button class="popup-btn" onclick="startHoleGame()">Старт</button>
     </div>
   </div>
 
