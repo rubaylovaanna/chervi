@@ -45,7 +45,7 @@ html, body {
 }
 
 .popup.hidden {
-  display: none;
+  display: none !important;
 }
 
 @keyframes fadeIn {
@@ -132,6 +132,7 @@ html, body {
 /* ===== ЭКРАНЫ ПОИСКА (1-6) ===== */
 .search-screen {
   background: url('../backgrounds/bg-meadow.png') center/cover no-repeat;
+  background-color: #87CEEB;
 }
 
 /* Облако с инструкцией */
@@ -141,6 +142,7 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   background: url('../ui/cloud.png') center/contain no-repeat;
+  background-size: 100% 100%;
   padding: 50px 90px;
   min-width: 500px;
   max-width: 700px;
@@ -293,6 +295,7 @@ html, body {
 /* ===== ЭКРАН 8: ИГРА С НОРКАМИ ===== */
 .game-screen {
   background: url('../backgrounds/bg-ground.png') center/cover no-repeat;
+  background-color: #8B6914;
 }
 
 .game-area {
@@ -323,6 +326,7 @@ html, body {
   border-radius: 30px;
   padding: 15px;
   backdrop-filter: blur(5px);
+  position: relative;
 }
 
 .draggable-worm {
@@ -332,15 +336,25 @@ html, body {
   cursor: grab;
   touch-action: none;
   transition: transform 0.2s;
+  position: relative;
 }
 
-.draggable-worm:active {
-  cursor: grabbing;
+.draggable-worm:hover {
   transform: scale(1.1);
 }
 
 .draggable-worm.show {
   animation: wormAppear 0.6s ease-out;
+}
+
+/* При перетаскивании */
+.draggable-worm.dragging {
+  position: fixed !important;
+  transform: none !important;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
+  z-index: 1000;
+  cursor: grabbing;
+  pointer-events: none;
 }
 
 #task-text {
@@ -514,7 +528,6 @@ html, body {
   }
 }
 
-/* Для очень широких экранов */
 @media (min-width: 1600px) {
   .beaver-big {
     height: 60vh;
