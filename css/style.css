@@ -129,170 +129,7 @@ html, body {
   50% { transform: translateY(-15px); }
 }
 
-/* ===== ЭКРАНЫ ПОИСКА (1-6) ===== */
-.search-screen {
-  background: url('../backgrounds/bg-meadow.png') center/cover no-repeat;
-  background-color: #87CEEB;
-}
-
-/* Облако с инструкцией */
-.cloud-instruction {
-  position: absolute;
-  top: 12%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: url('../ui/cloud.png') center/contain no-repeat;
-  background-size: 100% 100%;
-  padding: 50px 90px;
-  min-width: 500px;
-  max-width: 700px;
-  text-align: center;
-  z-index: 10;
-}
-
-.cloud-instruction p {
-  font-size: 26px;
-  font-weight: 700;
-  color: #333;
-  line-height: 1.3;
-  position: relative;
-  z-index: 1;
-}
-
-/* Зона поиска */
-.search-area {
-  position: absolute;
-  top: 40%;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 5%;
-}
-
-/* Бобёр */
-.beaver-big {
-  height: 55vh;
-  max-height: 500px;
-  width: auto;
-  object-fit: contain;
-  animation: beaverFloat 3s ease-in-out infinite;
-}
-
-@keyframes beaverFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-}
-
-/* Обёртка предмета */
-.object-wrapper {
-  position: relative;
-  width: 45vh;
-  max-width: 450px;
-  height: 45vh;
-  max-height: 450px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Предмет */
-.object-big {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.object-big.pulsing {
-  animation: pulseGlow 2s ease-in-out infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
-  }
-  50% {
-    transform: scale(1.06);
-    filter: drop-shadow(0 0 50px rgba(255, 215, 0, 1)) drop-shadow(0 0 80px rgba(255, 165, 0, 0.8));
-  }
-}
-
-.object-big:hover {
-  transform: scale(1.1);
-}
-
-/* Найденный червяк */
-.worm-found {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  width: 90%;
-  height: 90%;
-  object-fit: contain;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.worm-found.show {
-  animation: wormAppear 0.7s ease-out forwards;
-}
-
-@keyframes wormAppear {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(-180deg);
-    opacity: 0;
-  }
-  60% {
-    transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1) rotate(0);
-    opacity: 1;
-  }
-}
-
-/* ===== ЭКРАН 7: ВИДЕО ===== */
-.video-screen {
-  background: #000;
-}
-
-#worms-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.next-btn {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 20px 70px;
-  font-size: 32px;
-  font-weight: 700;
-  font-family: 'Ubuntu', sans-serif;
-  background: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(255, 99, 71, 0.5);
-  z-index: 10;
-  transition: all 0.2s;
-}
-
-.next-btn:hover {
-  transform: translateX(-50%) scale(1.05);
-}
-
-/* ===== ЭКРАН 8: ИГРА С НОРКАМИ ===== */
+/* ===== ЭКРАН: ИГРА С НОРКАМИ ===== */
 .game-screen {
   background: url('../backgrounds/bg-ground.png') center/cover no-repeat;
   background-color: #8B6914;
@@ -345,6 +182,21 @@ html, body {
 
 .draggable-worm.show {
   animation: wormAppear 0.6s ease-out;
+}
+
+@keyframes wormAppear {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
 }
 
 /* При перетаскивании */
@@ -414,31 +266,6 @@ html, body {
 
 /* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 768px) {
-  .cloud-instruction {
-    top: 8%;
-    min-width: auto;
-    width: 90%;
-    padding: 35px 50px;
-  }
-
-  .cloud-instruction p {
-    font-size: 20px;
-  }
-
-  .search-area {
-    top: 35%;
-    padding: 0 3%;
-  }
-
-  .beaver-big {
-    height: 40vh;
-  }
-
-  .object-wrapper {
-    width: 35vh;
-    height: 35vh;
-  }
-
   .popup-content {
     padding: 30px 25px;
     max-width: 90%;
@@ -481,33 +308,9 @@ html, body {
     gap: 12px;
     padding: 15px;
   }
-
-  .next-btn {
-    padding: 15px 50px;
-    font-size: 24px;
-    bottom: 25px;
-  }
 }
 
 @media (max-width: 480px) {
-  .cloud-instruction {
-    top: 5%;
-    padding: 25px 35px;
-  }
-
-  .cloud-instruction p {
-    font-size: 17px;
-  }
-
-  .beaver-big {
-    height: 32vh;
-  }
-
-  .object-wrapper {
-    width: 28vh;
-    height: 28vh;
-  }
-
   .popup-img {
     max-width: 180px;
     max-height: 180px;
@@ -529,24 +332,17 @@ html, body {
 }
 
 @media (min-width: 1600px) {
-  .beaver-big {
-    height: 60vh;
-    max-height: 600px;
-  }
-
-  .object-wrapper {
-    width: 50vh;
-    height: 50vh;
-    max-width: 550px;
-    max-height: 550px;
-  }
-
-  .cloud-instruction p {
-    font-size: 32px;
-  }
-
   .hole {
     width: 180px;
     height: 180px;
+  }
+
+  #current-worm-container {
+    width: 280px;
+    height: 180px;
+  }
+
+  #task-text {
+    font-size: 32px;
   }
 }
