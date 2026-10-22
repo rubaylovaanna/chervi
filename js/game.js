@@ -62,3 +62,24 @@ function initDrag() {
     returnWorm();
   });
 }
+// ===== ИНИЦИАЛИЗАЦИЯ КНОПОК =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Кнопка Старт
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) {
+    startBtn.addEventListener('click', startGame);
+  }
+
+  // Кнопка Начать сначала
+  const restartBtn = document.getElementById('restart-btn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', restartGame);
+  }
+
+  // Инициализация drag & drop
+  initDrag();
+});
+
+// Делаем функции глобальными (на всякий случай)
+window.startGame = startGame;
+window.restartGame = restartGame;
