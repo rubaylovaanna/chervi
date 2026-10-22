@@ -23,7 +23,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .screen.active {
@@ -140,6 +140,7 @@ html, body {
   display: flex;
   flex-direction: column;
   padding: 20px;
+  overflow: visible;
 }
 
 .task-area {
@@ -163,6 +164,7 @@ html, body {
   backdrop-filter: blur(5px);
   flex-shrink: 0;
   position: relative;
+  overflow: visible;
 }
 
 #current-worm {
@@ -173,7 +175,6 @@ html, body {
   touch-action: none;
   margin: 0;
   padding: 0;
-  /* transform управляется через JS — не задаём здесь */
 }
 
 #task-text {
@@ -200,6 +201,7 @@ html, body {
   grid-template-columns: repeat(8, 1fr);
   flex: 1;
   min-height: 0;
+  overflow: visible;
 }
 
 .hole {
