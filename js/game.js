@@ -14,26 +14,45 @@ let drag = {
   containerRect: null
 };
 
-// ===== ПОПАПЫ =====
+// ===== ФУНКЦИИ ПОПАПОВ (объявлены первыми) =====
 function startGame() {
-  console.log('startGame called');
+  console.log('✅ startGame called');
   const popup = document.getElementById('welcome-popup');
-  popup.classList.add('hidden');
+  if (popup) {
+    popup.classList.add('hidden');
+  }
   initHoleGame();
 }
 
 function showCongrats() {
-  document.getElementById('congrats-popup').classList.remove('hidden');
+  const popup = document.getElementById('congrats-popup');
+  if (popup) {
+    popup.classList.remove('hidden');
+  }
 }
 
 function restartGame() {
-  console.log('restartGame called');
-  document.getElementById('congrats-popup').classList.add('hidden');
-  document.getElementById('holes-row').innerHTML = '';
+  console.log('✅ restartGame called');
+  const congratsPopup = document.getElementById('congrats-popup');
+  if (congratsPopup) {
+    congratsPopup.classList.add('hidden');
+  }
+  
+  const holesRow = document.getElementById('holes-row');
+  if (holesRow) {
+    holesRow.innerHTML = '';
+  }
+  
   const worm = document.getElementById('current-worm');
-  worm.src = '';
-  worm.style.cssText = '';
-  document.getElementById('welcome-popup').classList.remove('hidden');
+  if (worm) {
+    worm.src = '';
+    worm.style.cssText = '';
+  }
+  
+  const welcomePopup = document.getElementById('welcome-popup');
+  if (welcomePopup) {
+    welcomePopup.classList.remove('hidden');
+  }
 }
 
 // ===== ИГРА С НОРКАМИ =====
@@ -49,6 +68,7 @@ function initHoleGame() {
   wormSequence = indices.slice(0, 8);
 
   const holesRow = document.getElementById('holes-row');
+  if (!holesRow) return;
   holesRow.innerHTML = '';
 
   const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
@@ -80,6 +100,8 @@ function showCurrentWorm() {
   const wormId = wormSequence[currentWormIndex];
   const wormImg = document.getElementById('current-worm');
 
+  if (!wormImg) return;
+
   wormImg.src = `worms/worm${wormId}.png`;
   wormImg.dataset.wormId = wormId;
   wormImg.style.cssText = '';
@@ -88,6 +110,7 @@ function showCurrentWorm() {
 // ===== DRAG & DROP =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
+  if (!wormImg) return;
 
   wormImg.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -144,6 +167,8 @@ function initDrag() {
 
 function checkDrop(x, y) {
   const el = drag.el;
+  if (!el) return;
+
   el.style.display = 'none';
   const target = document.elementFromPoint(x, y);
   el.style.display = '';
@@ -170,6 +195,8 @@ function checkDrop(x, y) {
 
 function returnWorm() {
   const el = drag.el;
+  if (!el || !drag.containerRect) return;
+
   const rect = drag.containerRect;
   const targetLeft = rect.left + rect.width / 2 - drag.width / 2;
   const targetTop = rect.top + rect.height / 2 - drag.height / 2;
@@ -183,38 +210,48 @@ function returnWorm() {
 
 function resetWorm() {
   const el = drag.el;
+  if (!el) return;
+
   el.style.cssText = '';
   el.style.cursor = 'grab';
 }
 
-// ===== ИНИЦИАЛИЗАЦИЯ =====
+// ===== ИНИЦИАЛИЗАЦИЯ (в самом конце файла) =====
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded');
+  console.log('✅ DOM loaded');
 
   const startBtn = document.getElementById('start-btn');
   const restartBtn = document.getElementById('restart-btn');
 
   if (startBtn) {
-    console.log('Start button found');
+    console.log('✅ Start button found');
     startBtn.addEventListener('click', (e) => {
-      console.log('Start button clicked');
+      console.log('✅ Start button clicked');
       e.preventDefault();
       e.stopPropagation();
       startGame();
     });
   } else {
-    console.error('Start button NOT found');
+    console.error(' Start button NOT found');
   }
 
   if (restartBtn) {
-    console.log('Restart button found');
+    console.log('✅ Restart button found');
     restartBtn.addEventListener('click', (e) => {
-      console.log('Restart button clicked');
+      console.log('✅ Restart button clicked');
       e.preventDefault();
       e.stopPropagation();
       restartGame();
     });
+  } else {
+    console.error('❌ Restart button NOT found');
   }
 
   initDrag();
+  console.log('✅ Drag initialized');
 });
+
+// Экспорт функций в window (на всякий случай)
+window.startGame = startGame;
+window.restartGame = restartGame;
+window.showCongrats = showCongrats;
