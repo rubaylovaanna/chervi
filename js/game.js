@@ -9,8 +9,8 @@ let drag = {
   el: null,
   offsetX: 0,
   offsetY: 0,
-  containerRect: null,
-  wormRect: null
+  width: 0,
+  height: 0
 };
 
 // ===== ФУНКЦИИ ПОПАПОВ =====
@@ -22,7 +22,6 @@ function startGame() {
   const gameScreen = document.getElementById('game-screen');
   if (gameScreen) gameScreen.classList.add('active');
 
-  // Небольшая задержка чтобы экран успел отрисоваться
   requestAnimationFrame(() => {
     initHoleGame();
   });
@@ -98,61 +97,55 @@ function showCurrentWorm() {
   const wormImg = document.getElementById('current-worm');
   if (!wormImg) return;
 
-  // ПОЛНЫЙ сброс стилей — убираем transform, position, всё
+  // Полный сброс стилей
   wormImg.style.cssText = '';
-  wormImg.style.transform = '';
-  wormImg.style.position = '';
-  wormImg.style.left = '';
-  wormImg.style.top = '';
-  wormImg.style.zIndex = '';
-  wormImg.style.filter = '';
   wormImg.style.cursor = 'grab';
 
   wormImg.src = `worms/worm${wormId}.png`;
   wormImg.dataset.wormId = wormId;
 }
 
-// ===== DRAG & DROP через TRANSFORM =====
+// ===== DRAG & DROP (через перемещение в body) =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
   if (!wormImg) return;
+
+  let originalParent = null;
+  let originalNextSibling = null;
 
   wormImg.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const wormRect = wormImg.getBoundingClientRect();
-    const containerRect = document.getElementById('current-worm-container').getBoundingClientRect();
-
-    // Вычисляем где червяк относительно контейнера
-    const wormCenterX = wormRect.left + wormRect.width / 2;
-    const wormCenterY = wormRect.top + wormRect.height / 2;
-    const containerCenterX = containerRect.left + containerRect.width / 2;
-    const containerCenterY = containerRect.top + containerRect.height / 2;
-
-    // Текущий transform (смещение от центра контейнера)
-    const currentTranslateX = wormCenterX - containerCenterX;
-    const currentTranslateY = wormCenterY - containerCenterY;
-
-    // Где курсор относительно центра червяка
-    const cursorOffsetX = e.clientX - wormCenterX;
-    const cursorOffsetY = e.clientY - wormCenterY;
+    const rect = wormImg.getBoundingClientRect();
 
     drag.active = true;
     drag.el = wormImg;
-    drag.containerCenterX = containerCenterX;
-    drag.containerCenterY = containerCenterY;
-    drag.cursorOffsetX = cursorOffsetX;
-    drag.cursorOffsetY = cursorOffsetY;
+    drag.offsetX = e.clientX - rect.left;
+    drag.offsetY = e.clientY - rect.top;
+    drag.width = rect.width;
+    drag.height = rect.height;
 
-    // Устанавливаем transform так чтобы червяк остался под курсором
-    const newTranslateX = e.clientX - containerCenterX - cursorOffsetX;
-    const newTranslateY = e.clientY - containerCenterY - cursorOffsetY;
+    // Запоминаем где был элемент
+    originalParent = wormImg.parentNode;
+    originalNextSibling = wormImg.nextSibling;
 
-    wormImg.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
-    wormImg.style.zIndex = '1000';
+    // Перемещаем в body — теперь он поверх ВСЕГО
+    document.body.appendChild(wormImg);
+
+    // Фиксируем размеры и позицию
+    wormImg.style.position = 'fixed';
+    wormImg.style.left = rect.left + 'px';
+    wormImg.style.top = rect.top + 'px';
+    wormImg.style.width = drag.width + 'px';
+    wormImg.style.height = drag.height + 'px';
+    wormImg.style.maxWidth = 'none';
+    wormImg.style.maxHeight = 'none';
+    wormImg.style.zIndex = '9999';
     wormImg.style.cursor = 'grabbing';
     wormImg.style.filter = 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))';
+    wormImg.style.margin = '0';
+    wormImg.style.padding = '0';
     wormImg.style.transition = 'none';
 
     try {
@@ -164,45 +157,42 @@ function initDrag() {
     if (!drag.active) return;
     e.preventDefault();
 
-    // Червяк следует за курсором относительно центра контейнера
-    const newTranslateX = e.clientX - drag.containerCenterX - drag.cursorOffsetX;
-    const newTranslateY = e.clientY - drag.containerCenterY - drag.cursorOffsetY;
-
-    drag.el.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
+    drag.el.style.left = (e.clientX - drag.offsetX) + 'px';
+    drag.el.style.top = (e.clientY - drag.offsetY) + 'px';
   });
 
   wormImg.addEventListener('pointerup', (e) => {
     if (!drag.active) return;
     drag.active = false;
-    checkDrop(e.clientX, e.clientY);
+    checkDrop(e.clientX, e.clientY, originalParent, originalNextSibling);
   });
 
   wormImg.addEventListener('pointercancel', () => {
     if (!drag.active) return;
     drag.active = false;
-    returnWorm();
+    returnWorm(originalParent, originalNextSibling);
   });
 }
 
-function checkDrop(x, y) {
+function checkDrop(x, y, originalParent, originalNextSibling) {
   const el = drag.el;
   if (!el) return;
 
   // Скрываем чтобы найти элемент под курсором
-  el.style.visibility = 'hidden';
+  el.style.display = 'none';
   const target = document.elementFromPoint(x, y);
-  el.style.visibility = '';
+  el.style.display = '';
 
   const hole = target ? target.closest('.hole') : null;
 
   if (hole && !hole.classList.contains('filled') && hole.dataset.wormId === el.dataset.wormId) {
-    // ✅ Совпадение
+    // ✅ Совпадение — оставляем в body, заменяем норку
     hole.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain;">`;
     hole.classList.add('filled');
     filledCount++;
 
-    el.style.cssText = '';
-    el.style.cursor = 'grab';
+    // Удаляем перетаскиваемого червяка
+    el.remove();
 
     if (filledCount === totalHoles) {
       setTimeout(showCongrats, 600);
@@ -211,22 +201,25 @@ function checkDrop(x, y) {
       setTimeout(showCurrentWorm, 600);
     }
   } else {
-    returnWorm();
+    // ❌ Возврат в контейнер
+    returnWorm(originalParent, originalNextSibling);
   }
 }
 
-function returnWorm() {
+function returnWorm(originalParent, originalNextSibling) {
   const el = drag.el;
-  if (!el) return;
+  if (!el || !originalParent) return;
 
-  // Плавный возврат — transform в 0,0 (центр контейнера)
-  el.style.transition = 'transform 0.4s ease';
-  el.style.transform = 'translate(0px, 0px)';
+  // Возвращаем в оригинальный контейнер
+  if (originalNextSibling) {
+    originalParent.insertBefore(el, originalNextSibling);
+  } else {
+    originalParent.appendChild(el);
+  }
 
-  setTimeout(() => {
-    el.style.cssText = '';
-    el.style.cursor = 'grab';
-  }, 400);
+  // Сбрасываем стили
+  el.style.cssText = '';
+  el.style.cursor = 'grab';
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -253,8 +246,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initDrag();
+  console.log('✅ Drag initialized');
 });
 
+// Экспорт функций
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.showCongrats = showCongrats;
