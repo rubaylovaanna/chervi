@@ -1,342 +1,260 @@
-/* ===== БАЗОВЫЕ СТИЛИ ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
+// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+let wormSequence = [];
+let currentWormIndex = 0;
+let filledCount = 0;
+let totalHoles = 8;
+
+let drag = {
+  active: false,
+  el: null,
+  offsetX: 0,
+  offsetY: 0,
+  containerRect: null,
+  wormRect: null
+};
+
+// ===== ФУНКЦИИ ПОПАПОВ =====
+function startGame() {
+  console.log('✅ startGame called');
+  const welcomePopup = document.getElementById('welcome-popup');
+  if (welcomePopup) welcomePopup.classList.add('hidden');
+
+  const gameScreen = document.getElementById('game-screen');
+  if (gameScreen) gameScreen.classList.add('active');
+
+  // Небольшая задержка чтобы экран успел отрисоваться
+  requestAnimationFrame(() => {
+    initHoleGame();
+  });
 }
 
-html, body {
-  font-family: 'Ubuntu', sans-serif;
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
-  background: #8B6914;
-  touch-action: none;
+function showCongrats() {
+  const popup = document.getElementById('congrats-popup');
+  if (popup) popup.classList.remove('hidden');
 }
 
-/* ===== ЭКРАНЫ ===== */
-.screen {
-  display: none;
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
+function restartGame() {
+  const congratsPopup = document.getElementById('congrats-popup');
+  if (congratsPopup) congratsPopup.classList.add('hidden');
 
-.screen.active {
-  display: block;
-}
+  const gameScreen = document.getElementById('game-screen');
+  if (gameScreen) gameScreen.classList.remove('active');
 
-/* ===== ПОПАПЫ ===== */
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  pointer-events: auto;
-}
+  const holesRow = document.getElementById('holes-row');
+  if (holesRow) holesRow.innerHTML = '';
 
-.popup.hidden {
-  display: none !important;
-}
-
-.popup-content {
-  background: linear-gradient(135deg, #FFF8E7, #FFE4B5);
-  border-radius: 40px;
-  padding: 50px 60px;
-  max-width: 600px;
-  width: 90%;
-  text-align: center;
-  border: 5px solid #FFD700;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: popupAppear 0.4s ease;
-  pointer-events: auto;
-  z-index: 1001;
-}
-
-@keyframes popupAppear {
-  from {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.popup-img {
-  max-width: 320px;
-  max-height: 320px;
-  width: 100%;
-  height: auto;
-  margin-bottom: 25px;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.popup-text {
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  line-height: 1.4;
-  margin-bottom: 30px;
-  pointer-events: none;
-}
-
-.popup-btn {
-  padding: 18px 60px;
-  font-size: 28px;
-  font-weight: 700;
-  font-family: 'Ubuntu', sans-serif;
-  background: linear-gradient(135deg, #FF6347, #FF4500);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(255, 99, 71, 0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-  pointer-events: auto;
-  z-index: 1002;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.popup-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 25px rgba(255, 99, 71, 0.6);
-}
-
-.popup-btn:active {
-  transform: scale(0.98);
-}
-
-.congrats-title {
-  font-size: 64px;
-  color: #FFD700;
-  text-shadow: 3px 3px 0 #FF8C00;
-  margin-bottom: 20px;
-  pointer-events: none;
-}
-
-/* ===== ИГРОВОЙ ЭКРАН ===== */
-.game-screen {
-  background: url('../backgrounds/bg-ground.png') center/cover no-repeat;
-  background-color: #8B6914;
-}
-
-.game-area {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.task-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  flex-shrink: 0;
-  padding-top: 10px;
-}
-
-#current-worm-container {
-  width: 220px;
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 30px;
-  padding: 15px;
-  backdrop-filter: blur(5px);
-  flex-shrink: 0;
-}
-
-#current-worm {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  cursor: grab;
-  touch-action: none;
-  transition: none;
-  margin: 0;
-  padding: 0;
-}
-
-#task-text {
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 15px 40px;
-  border-radius: 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
-}
-
-/* Норки */
-#holes-row {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 20px;
-  padding: 20px;
-  background: rgba(139, 105, 20, 0.3);
-  border-radius: 30px;
-  backdrop-filter: blur(5px);
-  grid-template-columns: repeat(8, 1fr);
-  flex: 1;
-  min-height: 0;
-}
-
-.hole {
-  width: 140px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-
-.hole img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.hole:hover:not(.filled) {
-  transform: scale(1.1);
-}
-
-.hole.filled {
-  cursor: default;
-  animation: holeFilled 0.5s ease;
-}
-
-@keyframes holeFilled {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); filter: drop-shadow(0 0 20px #00ff00); }
-}
-
-/* ===== АДАПТИВНОСТЬ ===== */
-@media (max-width: 768px) {
-  .popup-content {
-    padding: 30px 25px;
+  const worm = document.getElementById('current-worm');
+  if (worm) {
+    worm.src = '';
+    worm.style.cssText = '';
   }
 
-  .popup-img {
-    max-width: 240px;
-    max-height: 240px;
+  const welcomePopup = document.getElementById('welcome-popup');
+  if (welcomePopup) welcomePopup.classList.remove('hidden');
+}
+
+// ===== ИГРА С НОРКАМИ =====
+function initHoleGame() {
+  const indices = [];
+  for (let i = 1; i <= 10; i++) indices.push(i);
+
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
   }
 
-  .popup-text {
-    font-size: 24px;
+  wormSequence = indices.slice(0, 8);
+
+  const holesRow = document.getElementById('holes-row');
+  if (!holesRow) return;
+  holesRow.innerHTML = '';
+
+  const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
+  const isMobile = window.innerWidth <= 768;
+  holesRow.style.gridTemplateColumns = `repeat(${isMobile ? 4 : 8}, 1fr)`;
+
+  shuffledHoles.forEach(id => {
+    const hole = document.createElement('div');
+    hole.className = 'hole';
+    hole.dataset.wormId = id;
+    hole.innerHTML = `<img src="holes/hole${id}.png" alt="Норка ${id}">`;
+    holesRow.appendChild(hole);
+  });
+
+  currentWormIndex = 0;
+  filledCount = 0;
+  totalHoles = wormSequence.length;
+
+  showCurrentWorm();
+}
+
+function showCurrentWorm() {
+  if (currentWormIndex >= wormSequence.length) {
+    setTimeout(showCongrats, 500);
+    return;
   }
 
-  .popup-btn {
-    padding: 16px 45px;
-    font-size: 24px;
-  }
+  const wormId = wormSequence[currentWormIndex];
+  const wormImg = document.getElementById('current-worm');
+  if (!wormImg) return;
 
-  .congrats-title {
-    font-size: 52px;
-  }
+  // ПОЛНЫЙ сброс стилей — убираем transform, position, всё
+  wormImg.style.cssText = '';
+  wormImg.style.transform = '';
+  wormImg.style.position = '';
+  wormImg.style.left = '';
+  wormImg.style.top = '';
+  wormImg.style.zIndex = '';
+  wormImg.style.filter = '';
+  wormImg.style.cursor = 'grab';
 
-  #current-worm-container {
-    width: 200px;
-    height: 140px;
-  }
+  wormImg.src = `worms/worm${wormId}.png`;
+  wormImg.dataset.wormId = wormId;
+}
 
-  #task-text {
-    font-size: 22px;
-    padding: 12px 30px;
-  }
+// ===== DRAG & DROP через TRANSFORM =====
+function initDrag() {
+  const wormImg = document.getElementById('current-worm');
+  if (!wormImg) return;
 
-  .hole {
-    width: 100px;
-    height: 100px;
-  }
+  wormImg.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  #holes-row {
-    gap: 10px;
-    padding: 15px;
+    const wormRect = wormImg.getBoundingClientRect();
+    const containerRect = document.getElementById('current-worm-container').getBoundingClientRect();
+
+    // Вычисляем где червяк относительно контейнера
+    const wormCenterX = wormRect.left + wormRect.width / 2;
+    const wormCenterY = wormRect.top + wormRect.height / 2;
+    const containerCenterX = containerRect.left + containerRect.width / 2;
+    const containerCenterY = containerRect.top + containerRect.height / 2;
+
+    // Текущий transform (смещение от центра контейнера)
+    const currentTranslateX = wormCenterX - containerCenterX;
+    const currentTranslateY = wormCenterY - containerCenterY;
+
+    // Где курсор относительно центра червяка
+    const cursorOffsetX = e.clientX - wormCenterX;
+    const cursorOffsetY = e.clientY - wormCenterY;
+
+    drag.active = true;
+    drag.el = wormImg;
+    drag.containerCenterX = containerCenterX;
+    drag.containerCenterY = containerCenterY;
+    drag.cursorOffsetX = cursorOffsetX;
+    drag.cursorOffsetY = cursorOffsetY;
+
+    // Устанавливаем transform так чтобы червяк остался под курсором
+    const newTranslateX = e.clientX - containerCenterX - cursorOffsetX;
+    const newTranslateY = e.clientY - containerCenterY - cursorOffsetY;
+
+    wormImg.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
+    wormImg.style.zIndex = '1000';
+    wormImg.style.cursor = 'grabbing';
+    wormImg.style.filter = 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))';
+    wormImg.style.transition = 'none';
+
+    try {
+      wormImg.setPointerCapture(e.pointerId);
+    } catch (err) {}
+  });
+
+  wormImg.addEventListener('pointermove', (e) => {
+    if (!drag.active) return;
+    e.preventDefault();
+
+    // Червяк следует за курсором относительно центра контейнера
+    const newTranslateX = e.clientX - drag.containerCenterX - drag.cursorOffsetX;
+    const newTranslateY = e.clientY - drag.containerCenterY - drag.cursorOffsetY;
+
+    drag.el.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
+  });
+
+  wormImg.addEventListener('pointerup', (e) => {
+    if (!drag.active) return;
+    drag.active = false;
+    checkDrop(e.clientX, e.clientY);
+  });
+
+  wormImg.addEventListener('pointercancel', () => {
+    if (!drag.active) return;
+    drag.active = false;
+    returnWorm();
+  });
+}
+
+function checkDrop(x, y) {
+  const el = drag.el;
+  if (!el) return;
+
+  // Скрываем чтобы найти элемент под курсором
+  el.style.visibility = 'hidden';
+  const target = document.elementFromPoint(x, y);
+  el.style.visibility = '';
+
+  const hole = target ? target.closest('.hole') : null;
+
+  if (hole && !hole.classList.contains('filled') && hole.dataset.wormId === el.dataset.wormId) {
+    // ✅ Совпадение
+    hole.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain;">`;
+    hole.classList.add('filled');
+    filledCount++;
+
+    el.style.cssText = '';
+    el.style.cursor = 'grab';
+
+    if (filledCount === totalHoles) {
+      setTimeout(showCongrats, 600);
+    } else {
+      currentWormIndex++;
+      setTimeout(showCurrentWorm, 600);
+    }
+  } else {
+    returnWorm();
   }
 }
 
-@media (max-width: 480px) {
-  .popup-img {
-    max-width: 200px;
-    max-height: 200px;
-  }
+function returnWorm() {
+  const el = drag.el;
+  if (!el) return;
 
-  .popup-text {
-    font-size: 20px;
-  }
+  // Плавный возврат — transform в 0,0 (центр контейнера)
+  el.style.transition = 'transform 0.4s ease';
+  el.style.transform = 'translate(0px, 0px)';
 
-  .hole {
-    width: 90px;
-    height: 90px;
-  }
-
-  #current-worm-container {
-    width: 180px;
-    height: 120px;
-  }
-
-  #holes-row {
-    gap: 8px;
-    padding: 10px;
-  }
-
-  #task-text {
-    font-size: 18px;
-    padding: 10px 20px;
-  }
+  setTimeout(() => {
+    el.style.cssText = '';
+    el.style.cursor = 'grab';
+  }, 400);
 }
 
-@media (max-width: 380px) {
-  .hole {
-    width: 78px;
-    height: 78px;
+// ===== ИНИЦИАЛИЗАЦИЯ =====
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('✅ DOM loaded');
+
+  const startBtn = document.getElementById('start-btn');
+  const restartBtn = document.getElementById('restart-btn');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startGame();
+    });
   }
 
-  #current-worm-container {
-    width: 160px;
-    height: 110px;
+  if (restartBtn) {
+    restartBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      restartGame();
+    });
   }
 
-  #holes-row {
-    gap: 6px;
-    padding: 8px;
-  }
-}
+  initDrag();
+});
 
-@media (min-width: 1600px) {
-  .hole {
-    width: 180px;
-    height: 180px;
-  }
-
-  #current-worm-container {
-    width: 280px;
-    height: 180px;
-  }
-
-  #task-text {
-    font-size: 32px;
-  }
-}
+window.startGame = startGame;
+window.restartGame = restartGame;
+window.showCongrats = showCongrats;
