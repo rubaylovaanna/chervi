@@ -9,77 +9,52 @@ let drag = {
   el: null,
   offsetX: 0,
   offsetY: 0,
-  width: 0,
-  height: 0,
-  containerRect: null
+  containerRect: null,
+  wormRect: null
 };
 
 // ===== ФУНКЦИИ ПОПАПОВ =====
 function startGame() {
   console.log('✅ startGame called');
-  
-  // Скрываем приветственный попап
   const welcomePopup = document.getElementById('welcome-popup');
-  if (welcomePopup) {
-    welcomePopup.classList.add('hidden');
-  }
-  
-  // ПОКАЗЫВАЕМ игровой экран
+  if (welcomePopup) welcomePopup.classList.add('hidden');
+
   const gameScreen = document.getElementById('game-screen');
-  if (gameScreen) {
-    gameScreen.classList.add('active');
-  } else {
-    console.error('❌ game-screen not found');
-  }
-  
-  // Запускаем игру
-  initHoleGame();
+  if (gameScreen) gameScreen.classList.add('active');
+
+  // Небольшая задержка чтобы экран успел отрисоваться
+  requestAnimationFrame(() => {
+    initHoleGame();
+  });
 }
 
 function showCongrats() {
-  console.log('✅ showCongrats called');
   const popup = document.getElementById('congrats-popup');
-  if (popup) {
-    popup.classList.remove('hidden');
-  }
+  if (popup) popup.classList.remove('hidden');
 }
 
 function restartGame() {
-  console.log('✅ restartGame called');
-  
   const congratsPopup = document.getElementById('congrats-popup');
-  if (congratsPopup) {
-    congratsPopup.classList.add('hidden');
-  }
-  
-  // Скрываем игровой экран
+  if (congratsPopup) congratsPopup.classList.add('hidden');
+
   const gameScreen = document.getElementById('game-screen');
-  if (gameScreen) {
-    gameScreen.classList.remove('active');
-  }
-  
+  if (gameScreen) gameScreen.classList.remove('active');
+
   const holesRow = document.getElementById('holes-row');
-  if (holesRow) {
-    holesRow.innerHTML = '';
-  }
-  
+  if (holesRow) holesRow.innerHTML = '';
+
   const worm = document.getElementById('current-worm');
   if (worm) {
     worm.src = '';
     worm.style.cssText = '';
   }
-  
-  // Показываем приветственный попап
+
   const welcomePopup = document.getElementById('welcome-popup');
-  if (welcomePopup) {
-    welcomePopup.classList.remove('hidden');
-  }
+  if (welcomePopup) welcomePopup.classList.remove('hidden');
 }
 
 // ===== ИГРА С НОРКАМИ =====
 function initHoleGame() {
-  console.log('✅ initHoleGame called');
-  
   const indices = [];
   for (let i = 1; i <= 10; i++) indices.push(i);
 
@@ -89,17 +64,12 @@ function initHoleGame() {
   }
 
   wormSequence = indices.slice(0, 8);
-  console.log('Worm sequence:', wormSequence);
 
   const holesRow = document.getElementById('holes-row');
-  if (!holesRow) {
-    console.error('❌ holes-row not found');
-    return;
-  }
+  if (!holesRow) return;
   holesRow.innerHTML = '';
 
   const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
-
   const isMobile = window.innerWidth <= 768;
   holesRow.style.gridTemplateColumns = `repeat(${isMobile ? 4 : 8}, 1fr)`;
 
@@ -110,8 +80,6 @@ function initHoleGame() {
     hole.innerHTML = `<img src="holes/hole${id}.png" alt="Норка ${id}">`;
     holesRow.appendChild(hole);
   });
-  
-  console.log('Holes created:', holesRow.children.length);
 
   currentWormIndex = 0;
   filledCount = 0;
@@ -121,64 +89,71 @@ function initHoleGame() {
 }
 
 function showCurrentWorm() {
-  console.log('✅ showCurrentWorm called, index:', currentWormIndex);
-  
   if (currentWormIndex >= wormSequence.length) {
-    console.log('All worms placed, showing congrats');
     setTimeout(showCongrats, 500);
     return;
   }
 
   const wormId = wormSequence[currentWormIndex];
   const wormImg = document.getElementById('current-worm');
+  if (!wormImg) return;
 
-  if (!wormImg) {
-    console.error('❌ current-worm not found');
-    return;
-  }
-
-  const src = `worms/worm${wormId}.png`;
-  console.log('Loading worm:', src);
-  
-  wormImg.src = src;
-  wormImg.dataset.wormId = wormId;
+  // ПОЛНЫЙ сброс стилей — убираем transform, position, всё
   wormImg.style.cssText = '';
+  wormImg.style.transform = '';
+  wormImg.style.position = '';
+  wormImg.style.left = '';
+  wormImg.style.top = '';
+  wormImg.style.zIndex = '';
+  wormImg.style.filter = '';
+  wormImg.style.cursor = 'grab';
+
+  wormImg.src = `worms/worm${wormId}.png`;
+  wormImg.dataset.wormId = wormId;
 }
 
-// ===== DRAG & DROP =====
+// ===== DRAG & DROP через TRANSFORM =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
-  if (!wormImg) {
-    console.error('❌ current-worm not found for drag');
-    return;
-  }
+  if (!wormImg) return;
 
   wormImg.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = wormImg.getBoundingClientRect();
+    const wormRect = wormImg.getBoundingClientRect();
+    const containerRect = document.getElementById('current-worm-container').getBoundingClientRect();
+
+    // Вычисляем где червяк относительно контейнера
+    const wormCenterX = wormRect.left + wormRect.width / 2;
+    const wormCenterY = wormRect.top + wormRect.height / 2;
+    const containerCenterX = containerRect.left + containerRect.width / 2;
+    const containerCenterY = containerRect.top + containerRect.height / 2;
+
+    // Текущий transform (смещение от центра контейнера)
+    const currentTranslateX = wormCenterX - containerCenterX;
+    const currentTranslateY = wormCenterY - containerCenterY;
+
+    // Где курсор относительно центра червяка
+    const cursorOffsetX = e.clientX - wormCenterX;
+    const cursorOffsetY = e.clientY - wormCenterY;
 
     drag.active = true;
     drag.el = wormImg;
-    drag.offsetX = e.clientX - rect.left;
-    drag.offsetY = e.clientY - rect.top;
-    drag.width = rect.width;
-    drag.height = rect.height;
-    drag.containerRect = document.getElementById('current-worm-container').getBoundingClientRect();
+    drag.containerCenterX = containerCenterX;
+    drag.containerCenterY = containerCenterY;
+    drag.cursorOffsetX = cursorOffsetX;
+    drag.cursorOffsetY = cursorOffsetY;
 
-    wormImg.style.width = drag.width + 'px';
-    wormImg.style.height = drag.height + 'px';
-    wormImg.style.maxWidth = 'none';
-    wormImg.style.maxHeight = 'none';
-    wormImg.style.left = rect.left + 'px';
-    wormImg.style.top = rect.top + 'px';
-    wormImg.style.position = 'fixed';
+    // Устанавливаем transform так чтобы червяк остался под курсором
+    const newTranslateX = e.clientX - containerCenterX - cursorOffsetX;
+    const newTranslateY = e.clientY - containerCenterY - cursorOffsetY;
+
+    wormImg.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
     wormImg.style.zIndex = '1000';
     wormImg.style.cursor = 'grabbing';
     wormImg.style.filter = 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))';
-    wormImg.style.margin = '0';
-    wormImg.style.padding = '0';
+    wormImg.style.transition = 'none';
 
     try {
       wormImg.setPointerCapture(e.pointerId);
@@ -189,8 +164,11 @@ function initDrag() {
     if (!drag.active) return;
     e.preventDefault();
 
-    drag.el.style.left = (e.clientX - drag.offsetX) + 'px';
-    drag.el.style.top = (e.clientY - drag.offsetY) + 'px';
+    // Червяк следует за курсором относительно центра контейнера
+    const newTranslateX = e.clientX - drag.containerCenterX - drag.cursorOffsetX;
+    const newTranslateY = e.clientY - drag.containerCenterY - drag.cursorOffsetY;
+
+    drag.el.style.transform = `translate(${newTranslateX}px, ${newTranslateY}px)`;
   });
 
   wormImg.addEventListener('pointerup', (e) => {
@@ -210,18 +188,21 @@ function checkDrop(x, y) {
   const el = drag.el;
   if (!el) return;
 
-  el.style.display = 'none';
+  // Скрываем чтобы найти элемент под курсором
+  el.style.visibility = 'hidden';
   const target = document.elementFromPoint(x, y);
-  el.style.display = '';
+  el.style.visibility = '';
 
   const hole = target ? target.closest('.hole') : null;
 
   if (hole && !hole.classList.contains('filled') && hole.dataset.wormId === el.dataset.wormId) {
+    // ✅ Совпадение
     hole.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain;">`;
     hole.classList.add('filled');
     filledCount++;
 
-    resetWorm();
+    el.style.cssText = '';
+    el.style.cursor = 'grab';
 
     if (filledCount === totalHoles) {
       setTimeout(showCongrats, 600);
@@ -236,25 +217,16 @@ function checkDrop(x, y) {
 
 function returnWorm() {
   const el = drag.el;
-  if (!el || !drag.containerRect) return;
-
-  const rect = drag.containerRect;
-  const targetLeft = rect.left + rect.width / 2 - drag.width / 2;
-  const targetTop = rect.top + rect.height / 2 - drag.height / 2;
-
-  el.style.transition = 'left 0.3s ease, top 0.3s ease';
-  el.style.left = targetLeft + 'px';
-  el.style.top = targetTop + 'px';
-
-  setTimeout(resetWorm, 300);
-}
-
-function resetWorm() {
-  const el = drag.el;
   if (!el) return;
 
-  el.style.cssText = '';
-  el.style.cursor = 'grab';
+  // Плавный возврат — transform в 0,0 (центр контейнера)
+  el.style.transition = 'transform 0.4s ease';
+  el.style.transform = 'translate(0px, 0px)';
+
+  setTimeout(() => {
+    el.style.cssText = '';
+    el.style.cursor = 'grab';
+  }, 400);
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -265,34 +237,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const restartBtn = document.getElementById('restart-btn');
 
   if (startBtn) {
-    console.log('✅ Start button found');
     startBtn.addEventListener('click', (e) => {
-      console.log('✅ Start button clicked');
       e.preventDefault();
       e.stopPropagation();
       startGame();
     });
-  } else {
-    console.error('❌ Start button NOT found');
   }
 
   if (restartBtn) {
-    console.log('✅ Restart button found');
     restartBtn.addEventListener('click', (e) => {
-      console.log('✅ Restart button clicked');
       e.preventDefault();
       e.stopPropagation();
       restartGame();
     });
-  } else {
-    console.error('❌ Restart button NOT found');
   }
 
   initDrag();
-  console.log('✅ Drag initialized');
 });
 
-// Экспорт функций
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.showCongrats = showCongrats;
