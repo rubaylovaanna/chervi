@@ -33,12 +33,16 @@ html, body {
 /* ===== ПОПАПЫ ===== */
 .popup {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  pointer-events: auto;
 }
 
 .popup.hidden {
@@ -55,6 +59,8 @@ html, body {
   border: 5px solid #FFD700;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   animation: popupAppear 0.4s ease;
+  pointer-events: auto;
+  z-index: 1001;
 }
 
 @keyframes popupAppear {
@@ -75,6 +81,7 @@ html, body {
   height: auto;
   margin-bottom: 25px;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .popup-text {
@@ -83,6 +90,7 @@ html, body {
   color: #333;
   line-height: 1.4;
   margin-bottom: 30px;
+  pointer-events: none;
 }
 
 .popup-btn {
@@ -96,11 +104,16 @@ html, body {
   border-radius: 50px;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(255, 99, 71, 0.4);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  pointer-events: auto;
+  z-index: 1002;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .popup-btn:hover {
   transform: scale(1.05);
+  box-shadow: 0 12px 25px rgba(255, 99, 71, 0.6);
 }
 
 .popup-btn:active {
@@ -112,6 +125,7 @@ html, body {
   color: #FFD700;
   text-shadow: 3px 3px 0 #FF8C00;
   margin-bottom: 20px;
+  pointer-events: none;
 }
 
 /* ===== ИГРОВОЙ ЭКРАН ===== */
