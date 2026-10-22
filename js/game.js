@@ -14,17 +14,30 @@ let drag = {
   containerRect: null
 };
 
-// ===== ФУНКЦИИ ПОПАПОВ (объявлены первыми) =====
+// ===== ФУНКЦИИ ПОПАПОВ =====
 function startGame() {
   console.log('✅ startGame called');
-  const popup = document.getElementById('welcome-popup');
-  if (popup) {
-    popup.classList.add('hidden');
+  
+  // Скрываем приветственный попап
+  const welcomePopup = document.getElementById('welcome-popup');
+  if (welcomePopup) {
+    welcomePopup.classList.add('hidden');
   }
+  
+  // ПОКАЗЫВАЕМ игровой экран
+  const gameScreen = document.getElementById('game-screen');
+  if (gameScreen) {
+    gameScreen.classList.add('active');
+  } else {
+    console.error('❌ game-screen not found');
+  }
+  
+  // Запускаем игру
   initHoleGame();
 }
 
 function showCongrats() {
+  console.log('✅ showCongrats called');
   const popup = document.getElementById('congrats-popup');
   if (popup) {
     popup.classList.remove('hidden');
@@ -33,9 +46,16 @@ function showCongrats() {
 
 function restartGame() {
   console.log('✅ restartGame called');
+  
   const congratsPopup = document.getElementById('congrats-popup');
   if (congratsPopup) {
     congratsPopup.classList.add('hidden');
+  }
+  
+  // Скрываем игровой экран
+  const gameScreen = document.getElementById('game-screen');
+  if (gameScreen) {
+    gameScreen.classList.remove('active');
   }
   
   const holesRow = document.getElementById('holes-row');
@@ -49,6 +69,7 @@ function restartGame() {
     worm.style.cssText = '';
   }
   
+  // Показываем приветственный попап
   const welcomePopup = document.getElementById('welcome-popup');
   if (welcomePopup) {
     welcomePopup.classList.remove('hidden');
@@ -57,6 +78,8 @@ function restartGame() {
 
 // ===== ИГРА С НОРКАМИ =====
 function initHoleGame() {
+  console.log('✅ initHoleGame called');
+  
   const indices = [];
   for (let i = 1; i <= 10; i++) indices.push(i);
 
@@ -66,9 +89,13 @@ function initHoleGame() {
   }
 
   wormSequence = indices.slice(0, 8);
+  console.log('Worm sequence:', wormSequence);
 
   const holesRow = document.getElementById('holes-row');
-  if (!holesRow) return;
+  if (!holesRow) {
+    console.error('❌ holes-row not found');
+    return;
+  }
   holesRow.innerHTML = '';
 
   const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
@@ -83,6 +110,8 @@ function initHoleGame() {
     hole.innerHTML = `<img src="holes/hole${id}.png" alt="Норка ${id}">`;
     holesRow.appendChild(hole);
   });
+  
+  console.log('Holes created:', holesRow.children.length);
 
   currentWormIndex = 0;
   filledCount = 0;
@@ -92,7 +121,10 @@ function initHoleGame() {
 }
 
 function showCurrentWorm() {
+  console.log('✅ showCurrentWorm called, index:', currentWormIndex);
+  
   if (currentWormIndex >= wormSequence.length) {
+    console.log('All worms placed, showing congrats');
     setTimeout(showCongrats, 500);
     return;
   }
@@ -100,9 +132,15 @@ function showCurrentWorm() {
   const wormId = wormSequence[currentWormIndex];
   const wormImg = document.getElementById('current-worm');
 
-  if (!wormImg) return;
+  if (!wormImg) {
+    console.error('❌ current-worm not found');
+    return;
+  }
 
-  wormImg.src = `worms/worm${wormId}.png`;
+  const src = `worms/worm${wormId}.png`;
+  console.log('Loading worm:', src);
+  
+  wormImg.src = src;
   wormImg.dataset.wormId = wormId;
   wormImg.style.cssText = '';
 }
@@ -110,7 +148,10 @@ function showCurrentWorm() {
 // ===== DRAG & DROP =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
-  if (!wormImg) return;
+  if (!wormImg) {
+    console.error('❌ current-worm not found for drag');
+    return;
+  }
 
   wormImg.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -216,7 +257,7 @@ function resetWorm() {
   el.style.cursor = 'grab';
 }
 
-// ===== ИНИЦИАЛИЗАЦИЯ (в самом конце файла) =====
+// ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ DOM loaded');
 
@@ -232,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startGame();
     });
   } else {
-    console.error(' Start button NOT found');
+    console.error('❌ Start button NOT found');
   }
 
   if (restartBtn) {
@@ -251,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ Drag initialized');
 });
 
-// Экспорт функций в window (на всякий случай)
+// Экспорт функций
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.showCongrats = showCongrats;
