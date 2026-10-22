@@ -42,12 +42,6 @@ function restartGame() {
   const holesRow = document.getElementById('holes-row');
   if (holesRow) holesRow.innerHTML = '';
 
-  const worm = document.getElementById('current-worm');
-  if (worm) {
-    worm.src = '';
-    worm.style.cssText = '';
-  }
-
   const welcomePopup = document.getElementById('welcome-popup');
   if (welcomePopup) welcomePopup.classList.remove('hidden');
 }
@@ -105,55 +99,59 @@ function showCurrentWorm() {
   wormImg.dataset.wormId = wormId;
 }
 
-// ===== DRAG & DROP (через перемещение в body) =====
+// ===== DRAG & DROP =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
   if (!wormImg) return;
 
+  // Удаляем старые обработчики через клонирование
+  const newWorm = wormImg.cloneNode(true);
+  wormImg.parentNode.replaceChild(newWorm, wormImg);
+
   let originalParent = null;
   let originalNextSibling = null;
 
-  wormImg.addEventListener('pointerdown', (e) => {
+  newWorm.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = wormImg.getBoundingClientRect();
+    const rect = newWorm.getBoundingClientRect();
 
     drag.active = true;
-    drag.el = wormImg;
+    drag.el = newWorm;
     drag.offsetX = e.clientX - rect.left;
     drag.offsetY = e.clientY - rect.top;
     drag.width = rect.width;
     drag.height = rect.height;
 
     // Запоминаем где был элемент
-    originalParent = wormImg.parentNode;
-    originalNextSibling = wormImg.nextSibling;
+    originalParent = newWorm.parentNode;
+    originalNextSibling = newWorm.nextSibling;
 
     // Перемещаем в body — теперь он поверх ВСЕГО
-    document.body.appendChild(wormImg);
+    document.body.appendChild(newWorm);
 
     // Фиксируем размеры и позицию
-    wormImg.style.position = 'fixed';
-    wormImg.style.left = rect.left + 'px';
-    wormImg.style.top = rect.top + 'px';
-    wormImg.style.width = drag.width + 'px';
-    wormImg.style.height = drag.height + 'px';
-    wormImg.style.maxWidth = 'none';
-    wormImg.style.maxHeight = 'none';
-    wormImg.style.zIndex = '9999';
-    wormImg.style.cursor = 'grabbing';
-    wormImg.style.filter = 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))';
-    wormImg.style.margin = '0';
-    wormImg.style.padding = '0';
-    wormImg.style.transition = 'none';
+    newWorm.style.position = 'fixed';
+    newWorm.style.left = rect.left + 'px';
+    newWorm.style.top = rect.top + 'px';
+    newWorm.style.width = drag.width + 'px';
+    newWorm.style.height = drag.height + 'px';
+    newWorm.style.maxWidth = 'none';
+    newWorm.style.maxHeight = 'none';
+    newWorm.style.zIndex = '9999';
+    newWorm.style.cursor = 'grabbing';
+    newWorm.style.filter = 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))';
+    newWorm.style.margin = '0';
+    newWorm.style.padding = '0';
+    newWorm.style.transition = 'none';
 
     try {
-      wormImg.setPointerCapture(e.pointerId);
+      newWorm.setPointerCapture(e.pointerId);
     } catch (err) {}
   });
 
-  wormImg.addEventListener('pointermove', (e) => {
+  newWorm.addEventListener('pointermove', (e) => {
     if (!drag.active) return;
     e.preventDefault();
 
@@ -161,13 +159,13 @@ function initDrag() {
     drag.el.style.top = (e.clientY - drag.offsetY) + 'px';
   });
 
-  wormImg.addEventListener('pointerup', (e) => {
+  newWorm.addEventListener('pointerup', (e) => {
     if (!drag.active) return;
     drag.active = false;
     checkDrop(e.clientX, e.clientY, originalParent, originalNextSibling);
   });
 
-  wormImg.addEventListener('pointercancel', () => {
+  newWorm.addEventListener('pointercancel', () => {
     if (!drag.active) return;
     drag.active = false;
     returnWorm(originalParent, originalNextSibling);
@@ -186,7 +184,7 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
   const hole = target ? target.closest('.hole') : null;
 
   if (hole && !hole.classList.contains('filled') && hole.dataset.wormId === el.dataset.wormId) {
-    // ✅ Совпадение — оставляем в body, заменяем норку
+    // ✅ Совпадение — заменяем норку на червяка
     hole.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain;">`;
     hole.classList.add('filled');
     filledCount++;
@@ -197,6 +195,18 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
     if (filledCount === totalHoles) {
       setTimeout(showCongrats, 600);
     } else {
+      // ⚠️ Создаём НОВЫЙ элемент #current-worm в контейнере
+      const container = document.getElementById('current-worm-container');
+      const newWorm = document.createElement('img');
+      newWorm.id = 'current-worm';
+      newWorm.alt = 'Червяк';
+      newWorm.style.cssText = '';
+      newWorm.style.cursor = 'grab';
+      container.appendChild(newWorm);
+
+      // Перенавешиваем обработчики drag на новый элемент
+      initDrag();
+
       currentWormIndex++;
       setTimeout(showCurrentWorm, 600);
     }
