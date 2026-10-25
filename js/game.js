@@ -19,14 +19,12 @@ const sounds = {
   gameWon: new Audio('sounds/game-won.mp3')
 };
 
-// Предзагрузка и настройка громкости
 sounds.success.volume = 0.7;
 sounds.gameWon.volume = 0.8;
 
-// Функция воспроизведения звука
 function playSound(sound) {
   try {
-    sound.currentTime = 0; // Сброс на начало (для повторного воспроизведения)
+    sound.currentTime = 0;
     sound.play().catch(err => {
       console.warn('Звук не воспроизведён:', err);
     });
@@ -35,13 +33,11 @@ function playSound(sound) {
   }
 }
 
-// Разблокировка звука при первом клике (требование браузеров)
 let audioUnlocked = false;
 function unlockAudio() {
   if (audioUnlocked) return;
   audioUnlocked = true;
   
-  // Создаём тихий звук для разблокировки AudioContext
   const silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
   silent.volume = 0;
   silent.play().catch(() => {});
@@ -61,13 +57,13 @@ function startGame() {
   const gameScreen = document.getElementById('game-screen');
   if (gameScreen) gameScreen.classList.add('active');
 
-  requestAnimationFrame(() => {
+  // Полная инициализация игры
+  setTimeout(() => {
     initHoleGame();
-  });
+  }, 100);
 }
 
 function showCongrats() {
-  // 🎵 Воспроизводим финальный звук
   playSound(sounds.gameWon);
   
   const popup = document.getElementById('congrats-popup');
@@ -75,21 +71,37 @@ function showCongrats() {
 }
 
 function restartGame() {
+  console.log('✅ restartGame called');
+  
   const congratsPopup = document.getElementById('congrats-popup');
   if (congratsPopup) congratsPopup.classList.add('hidden');
 
   const gameScreen = document.getElementById('game-screen');
   if (gameScreen) gameScreen.classList.remove('active');
 
+  // Полная очистка
   const holesRow = document.getElementById('holes-row');
   if (holesRow) holesRow.innerHTML = '';
 
+  const container = document.getElementById('current-worm-container');
+  if (container) {
+    const oldWorm = document.getElementById('current-worm');
+    if (oldWorm) oldWorm.remove();
+  }
+
   const welcomePopup = document.getElementById('welcome-popup');
   if (welcomePopup) welcomePopup.classList.remove('hidden');
+  
+  // Сброс переменных
+  wormSequence = [];
+  currentWormIndex = 0;
+  filledCount = 0;
 }
 
 // ===== ИГРА С НОРКАМИ =====
 function initHoleGame() {
+  console.log('✅ initHoleGame called');
+  
   const indices = [];
   for (let i = 1; i <= 10; i++) indices.push(i);
 
@@ -99,9 +111,13 @@ function initHoleGame() {
   }
 
   wormSequence = indices.slice(0, 8);
+  console.log('Worm sequence:', wormSequence);
 
   const holesRow = document.getElementById('holes-row');
-  if (!holesRow) return;
+  if (!holesRow) {
+    console.error('❌ holes-row not found');
+    return;
+  }
   holesRow.innerHTML = '';
 
   const shuffledHoles = [...wormSequence].sort(() => Math.random() - 0.5);
@@ -120,31 +136,57 @@ function initHoleGame() {
   filledCount = 0;
   totalHoles = wormSequence.length;
 
+  // Автоматически показываем первого червяка
   showCurrentWorm();
 }
 
 function showCurrentWorm() {
+  console.log('✅ showCurrentWorm called, index:', currentWormIndex);
+  
   if (currentWormIndex >= wormSequence.length) {
+    console.log('All worms placed, showing congrats');
     setTimeout(showCongrats, 500);
     return;
   }
 
   const wormId = wormSequence[currentWormIndex];
-  const wormImg = document.getElementById('current-worm');
-  if (!wormImg) return;
-
-  // Полный сброс стилей
-  wormImg.style.cssText = '';
-  wormImg.style.cursor = 'grab';
-
-  wormImg.src = `worms/worm${wormId}.png`;
-  wormImg.dataset.wormId = wormId;
+  
+  // Удаляем старого червяка если есть
+  const oldWorm = document.getElementById('current-worm');
+  if (oldWorm) {
+    oldWorm.remove();
+  }
+  
+  // Создаём нового червяка
+  const container = document.getElementById('current-worm-container');
+  if (!container) {
+    console.error('❌ current-worm-container not found');
+    return;
+  }
+  
+  const newWorm = document.createElement('img');
+  newWorm.id = 'current-worm';
+  newWorm.alt = 'Червяк';
+  newWorm.src = `worms/worm${wormId}.png`;
+  newWorm.dataset.wormId = wormId;
+  newWorm.style.cssText = '';
+  newWorm.style.cursor = 'grab';
+  
+  container.appendChild(newWorm);
+  
+  console.log('Worm created:', newWorm.src);
+  
+  // Навешиваем обработчики drag
+  initDrag();
 }
 
 // ===== DRAG & DROP =====
 function initDrag() {
   const wormImg = document.getElementById('current-worm');
-  if (!wormImg) return;
+  if (!wormImg) {
+    console.error('❌ current-worm not found for drag');
+    return;
+  }
 
   // Удаляем старые обработчики через клонирование
   const newWorm = wormImg.cloneNode(true);
@@ -222,12 +264,11 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
   const hole = target ? target.closest('.hole') : null;
 
   if (hole && !hole.classList.contains('filled') && hole.dataset.wormId === el.dataset.wormId) {
-    // ✅ Совпадение — заменяем норку на червяка
+    // ✅ Совпадение
     hole.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain;">`;
     hole.classList.add('filled');
     filledCount++;
 
-    // 🎵 Воспроизводим звук успеха
     playSound(sounds.success);
 
     el.remove();
@@ -235,34 +276,11 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
     if (filledCount === totalHoles) {
       setTimeout(showCongrats, 600);
     } else {
-      const container = document.getElementById('current-worm-container');
-      
-      const oldWorm = document.getElementById('current-worm');
-      if (oldWorm) oldWorm.remove();
-      
-      const newWorm = document.createElement('img');
-      newWorm.id = 'current-worm';
-      newWorm.alt = 'Червяк';
-      
+      // Автоматически показываем следующего червяка
       currentWormIndex++;
-      const nextWormId = wormSequence[currentWormIndex];
-      newWorm.src = `worms/worm${nextWormId}.png`;
-      newWorm.dataset.wormId = nextWormId;
-      
-      newWorm.style.opacity = '0';
-      
-      container.appendChild(newWorm);
-
-      initDrag();
-
-      newWorm.onload = () => {
-        newWorm.style.opacity = '1';
-        newWorm.style.transition = 'opacity 0.3s ease';
-      };
-
-      if (newWorm.complete) {
-        newWorm.style.opacity = '1';
-      }
+      setTimeout(() => {
+        showCurrentWorm();
+      }, 600);
     }
   } else {
     returnWorm(originalParent, originalNextSibling);
@@ -306,8 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  initDrag();
-  console.log('✅ Drag initialized');
+  console.log('✅ Event listeners initialized');
 });
 
 // Экспорт функций
