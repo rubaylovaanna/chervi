@@ -13,9 +13,48 @@ let drag = {
   height: 0
 };
 
+// ===== ЗВУКИ =====
+const sounds = {
+  success: new Audio('sounds/success.mp3'),
+  gameWon: new Audio('sounds/game-won.mp3')
+};
+
+// Предзагрузка и настройка громкости
+sounds.success.volume = 0.7;
+sounds.gameWon.volume = 0.8;
+
+// Функция воспроизведения звука
+function playSound(sound) {
+  try {
+    sound.currentTime = 0; // Сброс на начало (для повторного воспроизведения)
+    sound.play().catch(err => {
+      console.warn('Звук не воспроизведён:', err);
+    });
+  } catch (err) {
+    console.warn('Ошибка воспроизведения звука:', err);
+  }
+}
+
+// Разблокировка звука при первом клике (требование браузеров)
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  
+  // Создаём тихий звук для разблокировки AudioContext
+  const silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+  silent.volume = 0;
+  silent.play().catch(() => {});
+}
+
+document.addEventListener('click', unlockAudio, { once: true });
+document.addEventListener('touchstart', unlockAudio, { once: true });
+
 // ===== ФУНКЦИИ ПОПАПОВ =====
 function startGame() {
   console.log('✅ startGame called');
+  unlockAudio();
+  
   const welcomePopup = document.getElementById('welcome-popup');
   if (welcomePopup) welcomePopup.classList.add('hidden');
 
@@ -28,6 +67,9 @@ function startGame() {
 }
 
 function showCongrats() {
+  // 🎵 Воспроизводим финальный звук
+  playSound(sounds.gameWon);
+  
   const popup = document.getElementById('congrats-popup');
   if (popup) popup.classList.remove('hidden');
 }
@@ -124,14 +166,11 @@ function initDrag() {
     drag.width = rect.width;
     drag.height = rect.height;
 
-    // Запоминаем где был элемент
     originalParent = newWorm.parentNode;
     originalNextSibling = newWorm.nextSibling;
 
-    // Перемещаем в body — теперь он поверх ВСЕГО
     document.body.appendChild(newWorm);
 
-    // Фиксируем размеры и позицию
     newWorm.style.position = 'fixed';
     newWorm.style.left = rect.left + 'px';
     newWorm.style.top = rect.top + 'px';
@@ -176,7 +215,6 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
   const el = drag.el;
   if (!el) return;
 
-  // Скрываем чтобы найти элемент под курсором
   el.style.display = 'none';
   const target = document.elementFromPoint(x, y);
   el.style.display = '';
@@ -189,29 +227,44 @@ function checkDrop(x, y, originalParent, originalNextSibling) {
     hole.classList.add('filled');
     filledCount++;
 
-    // Удаляем перетаскиваемого червяка
+    // 🎵 Воспроизводим звук успеха
+    playSound(sounds.success);
+
     el.remove();
 
     if (filledCount === totalHoles) {
       setTimeout(showCongrats, 600);
     } else {
-      // ⚠️ Создаём НОВЫЙ элемент #current-worm в контейнере
       const container = document.getElementById('current-worm-container');
+      
+      const oldWorm = document.getElementById('current-worm');
+      if (oldWorm) oldWorm.remove();
+      
       const newWorm = document.createElement('img');
       newWorm.id = 'current-worm';
       newWorm.alt = 'Червяк';
-      newWorm.style.cssText = '';
-      newWorm.style.cursor = 'grab';
+      
+      currentWormIndex++;
+      const nextWormId = wormSequence[currentWormIndex];
+      newWorm.src = `worms/worm${nextWormId}.png`;
+      newWorm.dataset.wormId = nextWormId;
+      
+      newWorm.style.opacity = '0';
+      
       container.appendChild(newWorm);
 
-      // Перенавешиваем обработчики drag на новый элемент
       initDrag();
 
-      currentWormIndex++;
-      setTimeout(showCurrentWorm, 600);
+      newWorm.onload = () => {
+        newWorm.style.opacity = '1';
+        newWorm.style.transition = 'opacity 0.3s ease';
+      };
+
+      if (newWorm.complete) {
+        newWorm.style.opacity = '1';
+      }
     }
   } else {
-    // ❌ Возврат в контейнер
     returnWorm(originalParent, originalNextSibling);
   }
 }
@@ -220,14 +273,12 @@ function returnWorm(originalParent, originalNextSibling) {
   const el = drag.el;
   if (!el || !originalParent) return;
 
-  // Возвращаем в оригинальный контейнер
   if (originalNextSibling) {
     originalParent.insertBefore(el, originalNextSibling);
   } else {
     originalParent.appendChild(el);
   }
 
-  // Сбрасываем стили
   el.style.cssText = '';
   el.style.cursor = 'grab';
 }
